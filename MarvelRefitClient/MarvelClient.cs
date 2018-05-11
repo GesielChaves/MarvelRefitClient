@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,11 +20,8 @@ namespace MarvelRefitClient
         {
             get
             {
-                var hash = _md5.ComputeHash(Encoding.ASCII.GetBytes($"{_timeSpan}{_secretKey}{_publicKey}"));
-                var sb = new StringBuilder();
-                foreach (byte t in hash)
-                    sb.Append(t.ToString("X2"));
-                return sb.ToString().ToLower();
+                _md5.ComputeHash(Encoding.ASCII.GetBytes($"{_timeSpan}{_secretKey}{_publicKey}"));
+                return _md5.Hash.Aggregate("", (s, @byte) => s + @byte.ToString("x2"));
             }
             private set => throw new NotImplementedException();
         }
@@ -38,5 +36,12 @@ namespace MarvelRefitClient
 
         public Task<HttpResponseMessage> GetCharacters(int limit = 20, string orderBy = "name")
             => _client.GetCharacters(_publicKey, _hash, _timeSpan);
+
+        private static string CalculaMD5(string textoClaro)
+        {
+            var md5 = new MD5CryptoServiceProvider();
+            md5.ComputeHash(Encoding.ASCII.GetBytes(textoClaro));
+            return md5.Hash.Aggregate("", (s, @byte) => s + @byte.ToString("x2"));
+        }
     }
 }
